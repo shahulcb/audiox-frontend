@@ -8,7 +8,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup';
 import StarRating from './StarRating'
 
-const MusicDetailsCard = ({ audioSrc, title, genre, author, isExistInPlaylist, songImage, overallRating }) => {
+const MusicDetailsCard = ({ audioSrc, title, genre, author, isExistInPlaylist, songImage, overallRating, updatePlaylistStatus }) => {
     const { songId } = useParams()
     const [createPlaylist, setCreatePlaylist] = useState(false)
     const [playlists, setPlaylists] = useState([])
@@ -34,6 +34,7 @@ const MusicDetailsCard = ({ audioSrc, title, genre, author, isExistInPlaylist, s
             const response = await instance.post("playlist/add-to-playlist", { playlistId, songId }, { withCredentials: true })
             toast.success(response.data.message)
             document.getElementById("formButton").click()
+            updatePlaylistStatus()
         } catch (error) {
             document.getElementById("formButton").click()
             toast.error(error.response.data.message)

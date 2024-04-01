@@ -79,7 +79,7 @@ const Search = () => {
                     />
                 ))}
                 {users && users.map((user) => (
-                    <Link to={`${user._id}/`} className='flex gap-5 items-center cursor-pointer p-3 rounded-md transition-all ease-in-out duration-500'>
+                    <Link to={`${user._id}/`} className='flex gap-5 items-center cursor-pointer p-3 rounded-md transition-all ease-in-out duration-500' key={user._id}>
                         <div className="avatar">
                             <div className="w-12 rounded-full">
                                 {user.avatar ?

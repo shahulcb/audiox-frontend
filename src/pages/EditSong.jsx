@@ -5,11 +5,13 @@ import { Formik, Form, ErrorMessage, Field } from 'formik'
 import * as Yup from 'yup';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import Loader from "../components/Loader"
 
 const EditSong = () => {
     const navigate = useNavigate()
     const { songId } = useParams()
     const [songDetails, setSongDetails] = useState(null);
+    const [loading, setLoading] = useState(false)
 
     const [files, setFiles] = useState({
         image: null
@@ -33,16 +35,19 @@ const EditSong = () => {
     };
     useEffect(() => {
         const fetchSongDetails = async () => {
+            setLoading(true)
             try {
                 const response = await instance.get(`song/get-song-details/${songId}`, { withCredentials: true })
                 setSongDetails(response.data.songDetails);
+                setLoading(false)
             } catch (error) {
-                console.log(error);
+                setLoading(true)
             }
         }
         fetchSongDetails()
     }, [])
     const handleSubmit = async (values) => {
+        setLoading(true)
         const formData = new FormData()
         formData.append("title", values.title)
         formData.append("genre", values.genre)
@@ -52,13 +57,16 @@ const EditSong = () => {
             const response = await instance.post("song/update-song-details", formData, { withCredentials: true })
             toast.success(response.data.message)
             navigate("../")
+            setLoading(false)
         } catch (error) {
-            console.log(error);
+            navigate("../")
+            setLoading(false)
         }
     }
     return (
         <Drawer>
-            {songDetails &&
+            {loading && <Loader />}
+            {!loading && <>
                 <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
                     <Form className='flex flex-col gap-3 max-w-[450px] mx-auto'>
                         <h1 className='text-lg font-medium mb-5'>Edit song</h1>
@@ -80,7 +88,7 @@ const EditSong = () => {
                         </div>
                     </Form>
                 </Formik>
-            }
+            </>}
         </Drawer>
     )
 }

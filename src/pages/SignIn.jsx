@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux'
 const SignIn = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const [loading, setLoading] = useState(false)
 
     const validationSchema = Yup.object().shape({
         username: Yup.string().required('username is required'),
@@ -24,13 +25,15 @@ const SignIn = () => {
     }
 
     const handleSubmit = async (values, { resetForm }) => {
+        setLoading(true)
         try {
             const response = await instance.post("user/sign-in", { ...values }, { withCredentials: true })
             toast.success(response.data.message)
             dispatch(userAuthSuccess({ isAuthenticated: response.data.isAuthenticated, user: response.data.user, token: response.data.token }))
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            setLoading(false)
             navigate("/dashboard")
         } catch (error) {
+            setLoading(false)
             toast.error(error.response.data.message)
             resetForm()
         }
@@ -51,7 +54,7 @@ const SignIn = () => {
                             <Field type="password" placeholder="Password" id="password" name="password" className="input input-bordered w-full" />
                             <ErrorMessage name='password' component={"span"} />
                         </div>
-                        <button className='btn btn-accent text-white'>Sign in</button>
+                        <button className='btn btn-accent text-white' disabled={loading}>{loading ? <span className="loading loading-spinner loading-md"></span> : "Sign in"}</button>
                     </Form>
                 </Formik>
                 <p className='mt-3'>Forgot your password?</p>

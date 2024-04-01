@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import instance from '../axios';
@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
     const navigate = useNavigate()
+    const [loading, setLoading] = useState(false)
 
     const validationSchema = Yup.object().shape({
         username: Yup.string().required('username is required')
@@ -27,14 +28,21 @@ const SignUp = () => {
     }
 
     const handleSubmit = async (values, { resetForm }) => {
+        setLoading(true)
         try {
             const response = await instance.post("user/sign-up", { ...values })
-            toast.success(response.data.message)
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            navigate("/sign-in")
+            if (response.data.success) {
+                toast.success(response.data.message)
+                setLoading(false)
+                navigate("/sign-in")
+            } else {
+                toast.error(response.data.message)
+                setLoading(false)
+                resetForm()
+            }
         } catch (error) {
-            toast.error(error.response.data.message)
-            console.log(error);
+            toast.error(error.message);
+            setLoading(false)
             resetForm()
         }
     }
@@ -64,7 +72,7 @@ const SignUp = () => {
                             <Field type="email" placeholder="Email" id="email" name="email" className="input input-bordered w-full" />
                             <ErrorMessage name='email' component={"span"} />
                         </div>
-                        <button className='btn btn-accent'>Register</button>
+                        <button className='btn btn-accent' disabled={loading}>{loading ? <span className="loading loading-spinner loading-md"></span> : "Register"}</button>
                     </Form>
                 </Formik>
                 <p className='my-5'>or contribute with</p>

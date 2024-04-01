@@ -4,6 +4,7 @@ import MusicCard from '../components/MusicCard'
 import { useNavigate, useParams } from 'react-router-dom'
 import instance from '../axios'
 import toast from 'react-hot-toast'
+import Loader from "../components/Loader"
 
 const DetailedPlaylist = () => {
     const { playlistId } = useParams()
@@ -13,15 +14,19 @@ const DetailedPlaylist = () => {
     const [editMode, setEditMode] = useState(false)
     const [idsForDelete, setIdForDelete] = useState([])
     const [input, setInput] = useState('')
+    const [loading, setLoading] = useState(false)
+
     useEffect(() => {
         const fetchPlaylist = async () => {
+            setLoading(true)
             try {
                 const response = await instance.get(`playlist/list-playlist-songs/${playlistId}`, { withCredentials: true })
                 setPlayList(response.data.playlist)
                 setSongs(response.data.songs)
                 setInput(response.data.playlist.title)
+                setLoading(false)
             } catch (error) {
-                toast.error(error.response.data.message)
+                setLoading(true)
             }
         }
         fetchPlaylist()
@@ -29,12 +34,16 @@ const DetailedPlaylist = () => {
     const handleDeletePlaylist = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this playlist?");
         if (confirmed) {
+            setLoading(true)
             try {
                 const response = await instance.post("playlist/delete-playlist", { playlistId }, { withCredentials: true })
                 toast.success(response.data.message)
                 navigate("../")
+                setLoading(false)
             } catch (error) {
+                setLoading(false)
                 toast.error(error.response.data.message)
+                navigate("../")
             }
         }
     }
@@ -60,37 +69,40 @@ const DetailedPlaylist = () => {
     }
     return (
         <Drawer>
-            <div className='flex items-center justify-between gap-5'>
-                <input type="text" defaultValue={playlist.title} placeholder='Playlist title' onChange={(e) => setInput(e.target.value)} className={`input flex-1 ${editMode ? "input-bordered" : ""}`} disabled={!editMode} />
-                <div className='flex gap-3'>
-                    {editMode ? (
-                        <>
-                            <button className='btn btn-warning flex-1' onClick={() => setEditMode(false)}>Discard changes</button>
-                            <button className='btn btn-success flex-1' onClick={handleSaveChanges}>Save changes</button>
-                        </>
-                    ) : (
-                        <>
-                            <button className='btn btn-accent flex-1' onClick={() => setEditMode(true)}>Edit</button>
-                            <button className='btn btn-error flex-1' onClick={handleDeletePlaylist}>Delete playList</button>
-                        </>
-                    )}
+            {loading && <Loader />}
+            {!loading && <>
+                <div className='flex items-center justify-between gap-5'>
+                    <input type="text" defaultValue={playlist.title} placeholder='Playlist title' onChange={(e) => setInput(e.target.value)} className={`input flex-1 ${editMode ? "input-bordered" : ""}`} disabled={!editMode} />
+                    <div className='flex gap-3'>
+                        {editMode ? (
+                            <>
+                                <button className='btn btn-warning flex-1' onClick={() => setEditMode(false)}>Discard</button>
+                                <button className='btn btn-success flex-1' onClick={handleSaveChanges}>Save</button>
+                            </>
+                        ) : (
+                            <>
+                                <button className='btn btn-accent flex-1' onClick={() => setEditMode(true)}>Edit</button>
+                                <button className='btn btn-error flex-1' onClick={handleDeletePlaylist}>Delete</button>
+                            </>
+                        )}
 
+                    </div>
                 </div>
-            </div>
-            <div className='flex flex-col gap-3 mt-5'>
-                {songs && songs.map((song) => (
-                    <MusicCard
-                        title={song.title}
-                        author={song.user}
-                        editMode={editMode}
-                        to={`${song.title}/${song._id}`}
-                        key={song._id}
-                        usedFor={"playlist"}
-                        songImage={song.bgImage}
-                        handleIdForDeleteSong={() => handleIdForDeleteSong(song._id)}
-                    />
-                ))}
-            </div>
+                <div className='flex flex-col gap-3 mt-5'>
+                    {songs && songs.map((song) => (
+                        <MusicCard
+                            title={song.title}
+                            author={song.user}
+                            editMode={editMode}
+                            to={`${song.title}/${song._id}`}
+                            key={song._id}
+                            usedFor={"playlist"}
+                            songImage={song.bgImage}
+                            handleIdForDeleteSong={() => handleIdForDeleteSong(song._id)}
+                        />
+                    ))}
+                </div>
+            </>}
         </Drawer >
     )
 }
