@@ -136,7 +136,7 @@ const Profile = () => {
                             }
                             <form className='flex flex-col gap-3' onSubmit={handleUploadAvatar}>
                                 <div className='form-control'>
-                                    <input type="file" className="file-input file-input-bordered w-full" onChange={(e) => setAvatar(e.target.files[0])} />
+                                    <input type="file" accept="image/*" className="file-input file-input-bordered w-full" onChange={(e) => setAvatar(e.target.files[0])} />
                                 </div>
                                 <div className='flex gap-3'>
                                     <button className="btn btn-error flex-1" type='button' onClick={() => setProfileImageEditMode(false)}>Cancel</button>
